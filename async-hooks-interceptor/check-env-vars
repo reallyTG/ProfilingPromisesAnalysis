@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# INVARIANT: this script expects the following environment variables to be
+#            set:
+#            - $ASYNC_HOOKS_ANALYSIS_PATH --> path to the asyncHooks.js analysis
+
+# Usage: is_defined <environment variable name without dollar sign>
+function is_defined() {
+	if [ -z "${!1}" ]; then
+		echo "Error! The $1 environment variable needs to be set in order to use this script!"
+		echo 'See the `check-env-vars` script for details.'
+		return 1
+	fi
+}
+
+vars=(ASYNC_HOOKS_ANALYSIS_PATH)
+
+# Check to make sure all required variales are defined
+code=0
+for v in ${vars[@]}; do
+	is_defined $v
+	if [ $? -eq 1 ]; then
+		code=1
+	fi
+done
+
+exit $code

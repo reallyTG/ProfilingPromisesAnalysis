@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# if anything fails during this process, don't even try running the application
+set -e
+
+# turn any path into a fully-qualified absolute path (e.g. beginning with '/')
+canonicalize() {
+	  # realpath "$@"
+	  echo "$(cd $(dirname $1); pwd -P)/$(basename $1)"
+}
+
+# Get directory of THIS script. This will be used to execute
+# the `check-env-vars` script, which should be located in
+# the same directory as this script.
+SCRIPT_DIRECTORY="$(dirname ${BASH_SOURCE[0]})"
+
+# Unless the user overrides the path to the analysis by setting the environment
+# variable `ASYNC_HOOKS_ANALYSIS_PATH`, we will assume they wanted to use the
+# current project's version.
+if [ -z "$ASYNC_HOOKS_ANALYSIS_PATH" ]; then
+    export ASYNC_HOOKS_ANALYSIS_PATH="${SCRIPT_DIRECTORY}/../asyncHooks.js"
+fi
+
+# ensure environment variables are set
+$SCRIPT_DIRECTORY/check-env-vars
+
+# We want to add the custom `node` alias in this directory to the PATH.
+# Therefore, we add the current directory `.` to the shell PATH.
+PATH=$SCRIPT_DIRECTORY:$PATH
+
+# Execute the given command.
+"$@"
