@@ -226,27 +226,37 @@ class Frame {
     //     }
     // }
 }
-function parseStringStackTrace (stringTrace) : FrameInfo[] {
+function parseStringStackTrace (stringTrace) {
     let splitTrace = stringTrace.split('\n');
-    let frameInfo : FrameInfo[] = [];
+    let frameInfo = [];
     for (let [i, v] of splitTrace.entries()) {
         if (i == 0) continue; // It's the 'Error:' part of the trace.
 
-        let elements : string[] = v.trim().split(' ');
+        let elements = v.trim().split(' ');
         let location = elements[elements.length - 1];
+        if (location[0] == '(') {
+            location = location.substr(1);
+        }
+        if (location[location.length-1] == ')') {
+            location = location.substr(0, location.length - 1);
+        }
         if (i == splitTrace.length - 1) {
             // Do something special here.
+            debug(';;;;; ' + location);
             let locationSplit = location.split(':');
             let n = locationSplit.length;
             let col = parseInt(locationSplit[n-1]);
             let line = parseInt(locationSplit[n-2]);
             let file = locationSplit[n-3];
             if (file && file[0] != '/')
-                    file = '/' + file;
+                file = '/' + file;
+
+            if (isNaN(col)) {
+                debug('NaN ALERT: ' + location);
+            }
 
             frameInfo.push(new FrameInfo('', file, line, col));
         } else {
-            location = location.substr(1, location.length - 2);
             let locationSplit = location.split(':');
 
             let functionName = '';
@@ -268,11 +278,9 @@ function parseStringStackTrace (stringTrace) : FrameInfo[] {
                 if (file && file[0] != '/')
                     file = '/' + file;
 
-                if (col == NaN) {
-                    debug('NaN ALERT');
-                    debug(locationSplit);
+                if (isNaN(col)) {
+                    debug('NaN ALERT: ' + location);
                 }
-
                 frameInfo.push(new FrameInfo(functionName, file, line, col));
             }
         }
