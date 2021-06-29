@@ -241,6 +241,8 @@ function parseStringStackTrace (stringTrace) : FrameInfo[] {
             let col = parseInt(locationSplit[n-1]);
             let line = parseInt(locationSplit[n-2]);
             let file = locationSplit[n-3];
+            if (file && file[0] != '/')
+                    file = '/' + file;
 
             frameInfo.push(new FrameInfo('', file, line, col));
         } else {
@@ -263,6 +265,14 @@ function parseStringStackTrace (stringTrace) : FrameInfo[] {
                 let col = parseInt(locationSplit[n-1]);
                 let line = parseInt(locationSplit[n-2]);
                 let file = locationSplit[n-3];
+                if (file && file[0] != '/')
+                    file = '/' + file;
+
+                if (col == NaN) {
+                    debug('NaN ALERT');
+                    debug(locationSplit);
+                }
+
                 frameInfo.push(new FrameInfo(functionName, file, line, col));
             }
         }
