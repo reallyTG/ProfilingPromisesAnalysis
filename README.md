@@ -4,7 +4,15 @@ This project is a profiling tool to detect inefficient promise usage in JavaScri
 
 Our dynamic analysis leverages the standard Node.js profiling API to observe promise execution.
 
-### Quick start
+### Quick Start -- Require
+
+The recommended way to run the analysis for general use is to `require` it as part of test harness setup.
+The analysis file for this is `asyncHooks_require.[jt]s`.
+e.g., for mocha, do something like `mocha --require /path/to/asyncHooks_require.ts`.
+
+TODO More thorough instructions.
+
+### Quick Start -- Interceptor
 
 To instrument any `node` command using the async hooks analysis, prefix your command with the path of `./async-hooks-interceptor/instrument`.
 
