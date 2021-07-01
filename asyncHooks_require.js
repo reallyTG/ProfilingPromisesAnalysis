@@ -15,13 +15,77 @@ const output_file_name = `results-${time}.json`;
 let JSONStringify = JSON.stringify;
 
 // I/O function heuristic
-let ioFunctions = [{fileName: "internal/util.js", functionName: "readFile"},
-                   {fileName: "internal/util.js", functionName: "stat"}];
+// TODO extend...
+let ioFunctions = [{fileName: "/internal/util", functionName: "access"},
+                   {fileName: "/internal/util", functionName: "appendFile"},
+                   {fileName: "/internal/util", functionName: "chmod"},
+                   {fileName: "/internal/util", functionName: "chown"},
+                   {fileName: "/internal/util", functionName: "close"},
+                   {fileName: "/internal/util", functionName: "copyFile"},
+                   {fileName: "/internal/util", functionName: "createReadStream"},
+                   {fileName: "/internal/util", functionName: "createWriteStream"},
+                   {fileName: "/internal/util", functionName: "exists"},
+                   {fileName: "/internal/util", functionName: "fchmod"},
+                   {fileName: "/internal/util", functionName: "fchown"},
+                   {fileName: "/internal/util", functionName: "fdatasync"},
+                   {fileName: "/internal/util", functionName: "fstat"},
+                   {fileName: "/internal/util", functionName: "fsync"},
+                   {fileName: "/internal/util", functionName: "ftruncate"},
+                   {fileName: "/internal/util", functionName: "futimes"},
+                   {fileName: "/internal/util", functionName: "lchmod"},
+                   {fileName: "/internal/util", functionName: "lchown"},
+                   {fileName: "/internal/util", functionName: "lutimes"},
+                   {fileName: "/internal/util", functionName: "link"},
+                   {fileName: "/internal/util", functionName: "lstat"},
+                   {fileName: "/internal/util", functionName: "mkdir"},
+                   {fileName: "/internal/util", functionName: "mkdtemp"},
+                   {fileName: "/internal/util", functionName: "open"},
+                   {fileName: "/internal/util", functionName: "opendir"},
+                   {fileName: "/internal/util", functionName: "read"},
+                   {fileName: "/internal/util", functionName: "readdir"},
+                   {fileName: "/internal/util", functionName: "readFile"},
+                   {fileName: "/internal/util", functionName: "readlink"},
+                   {fileName: "/internal/util", functionName: "readv"},
+                   {fileName: "/internal/util", functionName: "realpath"},
+                   {fileName: "/internal/util", functionName: "rename"},
+                   {fileName: "/internal/util", functionName: "rmdir"},
+                   {fileName: "/internal/util", functionName: "rm"},
+                   {fileName: "/internal/util", functionName: "stat"},
+                   {fileName: "/internal/util", functionName: "symlink"},
+                   {fileName: "/internal/util", functionName: "truncate"},
+                   {fileName: "/internal/util", functionName: "unlink"},
+                   {fileName: "/internal/util", functionName: "unwatchFile"},
+                   {fileName: "/internal/util", functionName: "utimes"},
+                   {fileName: "/internal/util", functionName: "watch"},
+                   {fileName: "/internal/util", functionName: "watchFile"},
+                   {fileName: "/internal/util", functionName: "write"},
+                   {fileName: "/internal/util", functionName: "writeFile"},
+                   {fileName: "/internal/util", functionName: "writev"}
+                ];
+
+// let networkFunctions = [{filePattern: "node_modules/axios", functionName: "Axios.request"},
+//                         {filePattern: "node_modules/node-fetch", functionName: "fetch"},
+//                         {filePattern: "node_modules/superagent", functionName: "RequestBase.then"},
+//                         {filePattern: "node_modules/got", functionName: "?????"}];
+
+// Network function heuristics.
+// These are mostly imported modules, and currently we will flag any
+// use of the module for simplicity.
+let networkFunctions = [{filePattern: "node_modules/axios"},
+                        {filePattern: "node_modules/node-fetch"},
+                        {filePattern: "node_modules/superagent"},
+                        {filePattern: "node_modules/got"}];
 
 function isIO(frame) {
     return frame && frame.fileName && frame.functionName
         && ioFunctions.some(func => func.fileName == frame.fileName
                             && func.functionName == frame.functionName);
+}
+
+function isNetwork(frame) {
+    return frame && frame.fileName && networkFunctions.filter(nfp => 
+        frame.fileName.indexOf(nfp.filePattern) > -1
+    ).length > 0; 
 }
 
 function isUserCode(frame) {
@@ -80,6 +144,7 @@ function init(asyncId, type, triggerAsyncId, resource) {
                 asyncId: asyncId,
                 triggerAsyncId: triggerAsyncId,
                 io: isIO(asyncContext),
+                network: isNetwork(asyncContext),
                 createdIn: time,
                 functionName: asyncContext.functionName,
                 userCode: userCode
@@ -266,6 +331,7 @@ function parseStringStackTrace (stringTrace) {
                     functionName += ' ' + elements[j];
                 }
             }
+            functionName = functionName.trim();
 
             if (locationSplit.length < 3) {
                 // It's anonymous.
